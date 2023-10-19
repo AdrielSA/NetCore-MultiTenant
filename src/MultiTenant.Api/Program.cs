@@ -1,3 +1,7 @@
+using MultiTenant.Api.Middlewares;
+using MultiTenant.Infrastructure.Extensions;
+using System.Reflection;
+
 namespace MultiTenant.Api
 {
     public class Program
@@ -9,13 +13,19 @@ namespace MultiTenant.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddJwtAuthentication();
+            builder.Services.AddDbConfigurations();
+            builder.Services.AddDependencies();
+
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -24,8 +34,10 @@ namespace MultiTenant.Api
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseMiddleware<PathMiddleware>();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
